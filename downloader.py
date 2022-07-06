@@ -31,7 +31,7 @@ def str_generator():
     return ''.join(listy)
 
 
-def downloader(url,count_workers,filename="",extension=".mp4"):
+def downloader(url,count_workers,filename="",extension=""):
 
     #send request
     response=requests.get(url=url,stream=True,headers={"User-Agent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0"})
@@ -42,10 +42,13 @@ def downloader(url,count_workers,filename="",extension=".mp4"):
 
     if filename=='':
         filename=urllib.parse.unquote(os.path.basename(readableurl.path))
+        
 
     if extension=='':
         extension = os.path.splitext(filename)[1]
-    
+    else:
+        filename=filename+extension
+
     content_length=response.headers['Content-Length']
 
     chunk_len=math.floor(int(content_length)/count_workers)
@@ -83,7 +86,7 @@ def downloader(url,count_workers,filename="",extension=".mp4"):
 
     newlist = sorted(results, key=operator.itemgetter("part")) 
 
-    orgFile=open(filename+'.'+extension,'ab+')
+    orgFile=open(filename,'ab+')
 
     for chunk in newlist :
         
@@ -97,7 +100,7 @@ def downloader(url,count_workers,filename="",extension=".mp4"):
     orgFile.close   
         
     response={
-        "file_name":filename+'.'+extension
+        "file_name":filename
     }
 
     return simplejson.dumps(response) 
