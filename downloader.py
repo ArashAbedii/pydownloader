@@ -11,24 +11,17 @@ import requests
 import simplejson
 
 
-def download(
-    url,
-    filename="test.txt",
-    headers={
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0"
-    },
-    result="",
-    part=1,
-):
+def download(url, filename="test.txt", headers=None, result="", part=1):
+    if headers is None:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0"
+        }
     # print('downloading part'+str(part)+ '...')
     page = requests.get(url, headers=headers)
     content = page.content
 
-    file = open(filename, "wb")
-
-    file.write(content)
-
-    file.close()
+    with open(filename, "wb") as file:
+        file.write(content)
 
     fileInfo = {"part": part, "file_name": filename}
     result.append(fileInfo)
@@ -36,9 +29,9 @@ def download(
     # print('part '+str(part)+ ' downloaded')
 
 
-def str_generator():
-    str = "abcdefghijklmnopqrstuwwxyz"
-    listy = list(str)
+def string_generator():
+    string = "abcdefghijklmnopqrstuwwxyz"
+    listy = list(string)
     random.shuffle(listy)
     return "".join(listy)
 
@@ -87,7 +80,7 @@ def downloader(url, count_workers, filename="", extension=""):
             "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0",
             "Range": f"bytes={start}-{end}",
         }
-        chunkName = str_generator() + f"-part{parts}.{extension}"
+        chunkName = f"{string_generator()}-part{parts}.{extension}"
 
         worker = threading.Thread(
             target=download, args=(url, chunkName, headers, results, parts)
