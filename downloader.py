@@ -6,28 +6,39 @@ import threading
 import urllib
 from logging import exception
 from urllib.parse import urlparse
+from tqdm import tqdm
 
 import requests
 import simplejson
 
 
 def download(url, filename="test.txt", headers=None, result="", part=1):
+
     if headers is None:
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0"
         }
+
     # print('downloading part'+str(part)+ '...')
-    page = requests.get(url, headers=headers)
-    content = page.content
+    page = requests.get(url, headers=headers, stream=True)
+    
+    # Get the total file size (if available)
+    total_size = int(page.headers.get('content-length', 0))
+
+    # Set up the progress bar
+    bar = tqdm(total=total_size, unit='B', unit_scale=True,desc=f"Part {part}")
 
     with open(filename, "wb") as file:
-        file.write(content)
+        for data in page.iter_content(chunk_size=1024):
+            file.write(data)
+            bar.update(len(data))
+
+    bar.close()
 
     fileInfo = {"part": part, "file_name": filename}
     result.append(fileInfo)
 
     # print('part '+str(part)+ ' downloaded')
-
 
 def string_generator():
     string = "abcdefghijklmnopqrstuwwxyz"
@@ -104,10 +115,10 @@ def downloader(url, count_workers, filename="", extension=""):
         partial = open(chunk["file_name"], "rb")
         partialContent = partial.read()
         orgFile.write(partialContent)
-        partial.close
+        partial.close()
         os.unlink(chunk["file_name"])
 
-    orgFile.close
+    orgFile.close()
 
     response = {"file_name": filename}
 
